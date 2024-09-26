@@ -87,12 +87,7 @@ class DartsWrapper(Helper):
 
     def train_batch(self, arch, errors_dict):
       args = self.args
-      if self.steps % len(self.train_queue) == 0:
-        self.scheduler.step()
-        self.objs = utils.AvgrageMeter()
-        self.top1 = utils.AvgrageMeter()
-        self.top5 = utils.AvgrageMeter()
-      lr = self.scheduler.get_lr()[0]
+      lr = self.scheduler.get_last_lr()[0]
 
       weights = self.get_weights_from_arch(arch)
       self.set_model_weights(weights)
@@ -104,7 +99,7 @@ class DartsWrapper(Helper):
       n = input.size(0)
 
       input = Variable(input, requires_grad=False).cuda()
-      target = Variable(target, requires_grad=False).cuda(async=True)
+      target = Variable(target, requires_grad=False).cuda(non_blocking=True)
 
       # get a random minibatch from the search queue with replacement
       self.optimizer.zero_grad()
@@ -112,13 +107,19 @@ class DartsWrapper(Helper):
       loss = self.criterion(logits, target)
 
       loss.backward()
-      nn.utils.clip_grad_norm(self.model.parameters(), args.grad_clip)
+      nn.utils.clip_grad_norm_(self.model.parameters(), args.grad_clip)
       self.optimizer.step()
 
+      if self.steps % len(self.train_queue) == 0:
+        self.scheduler.step()
+        self.objs = utils.AvgrageMeter()
+        self.top1 = utils.AvgrageMeter()
+        self.top5 = utils.AvgrageMeter()
+
       prec1, prec5 = utils.accuracy(logits, target, topk=(1, 5))
-      self.objs.update(loss.data[0], n)
-      self.top1.update(prec1.data[0], n)
-      self.top5.update(prec5.data[0], n)
+      self.objs.update(loss.item(), n)
+      self.top1.update(prec1.item(), n)
+      self.top5.update(prec5.item(), n)
 
       if step % args.report_freq == 0:
         logger.info('train %03d %e %f %f', step, self.objs.avg, self.top1.avg, self.top5.avg)
@@ -155,27 +156,28 @@ class DartsWrapper(Helper):
       else:
         n_batches = len(self.valid_queue)
 
-      for step in range(n_batches):
-        try:
-          input, target = next(self.valid_iter)
-        except Exception as e:
-          logger.info('looping back over valid set')
-          self.valid_iter = iter(self.valid_queue)
-          input, target = next(self.valid_iter)
-        input = Variable(input, volatile=True).cuda()
-        target = Variable(target, volatile=True).cuda(async=True)
+      with torch.no_grad():
+        for step in range(n_batches):
+          try:
+            input, target = next(self.valid_iter)
+          except Exception as e:
+            logger.info('looping back over valid set')
+            self.valid_iter = iter(self.valid_queue)
+            input, target = next(self.valid_iter)
+          input = Variable(input).cuda()
+          target = Variable(target).cuda(non_blocking=True)
 
-        logits = self.model(input, discrete=True)
-        loss = self.criterion(logits, target)
+          logits = self.model(input, discrete=True)
+          loss = self.criterion(logits, target)
 
-        prec1, prec5 = utils.accuracy(logits, target, topk=(1, 5))
-        n = input.size(0)
-        objs.update(loss.data[0], n)
-        top1.update(prec1.data[0], n)
-        top5.update(prec5.data[0], n)
+          prec1, prec5 = utils.accuracy(logits, target, topk=(1, 5))
+          n = input.size(0)
+          objs.update(loss.item(), n)
+          top1.update(prec1.item(), n)
+          top5.update(prec5.item(), n)
 
-        if step % self.args.report_freq == 0:
-          logger.info('valid %03d %e %f %f', step, objs.avg, top1.avg, top5.avg)
+          if step % self.args.report_freq == 0:
+            logger.info('valid %03d %e %f %f', step, objs.avg, top1.avg, top5.avg)
 
       return 1-top1.avg, objs.avg
 

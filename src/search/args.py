@@ -72,6 +72,9 @@ class Parser(object):
         parser.add_argument('--randomnas_rounds',        type=int,            default=None,           help='number of evaluation rounds in RandomNAS')
         parser.add_argument('--n_samples',               type=int,            default=1000,           help='number of discrete architectures to sample during eval')
 
+        # SparseDARTS
+        parser.add_argument('--arch_gaussian_penalty',   type=float,          default=0.0,            help='impose gaussian penalty for arch parameters')
+
         self.args = parser.parse_args()
         utils.print_args(self.args)
 
@@ -135,6 +138,7 @@ class Helper(Parser):
             "compute_hessian",
             "mul_factor",
             "max_weight_decay",
+            "arch_gaussian_penalty"
         ]
 
         args_to_log = dict(filter(lambda x: x[0] in list_of_args,

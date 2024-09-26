@@ -1,9 +1,12 @@
 #!/bin/bash
 #
 # submit to the right queue
-#SBATCH -p meta_gpu-ti
+#SBATCH -p batch_grad
 #SBATCH --gres gpu:1
-#SBATCH -a 1-3
+#SBATCH --cpus-per-gpu 8
+#SBATCH --mem-per-gpu 29G
+#SBATCH -a 1-1
+#SBATCH -t 1-0
 #SBATCH -J DARTS_grid_eval
 #
 # the execution will use the current directory for execution (important for relative paths)
@@ -14,6 +17,8 @@
 #SBATCH -e ./experiments/cluster_logs/%A_%a.e
 #
 
-source activate pytorch-0.3.1-cu8-py36
-python src/evaluation/train.py --cutout --auxiliary --job_id $SLURM_ARRAY_JOB_ID --task_id 1 --seed 1 --space $1 --dataset $2 --search_dp $3 --search_wd $4 --search_task_id $SLURM_ARRAY_TASK_ID
+/data/$USER/anaconda3/bin/conda init
+source activate darts
+
+python src/evaluation/train.py --data /local_datasets/darts --archs_config_file ./experiments/search_logs_SparseDARTS_600/results_arch.yaml --save experiments/eval_logs_SparseDARTS_600 --cutout --auxiliary --job_id $SLURM_ARRAY_JOB_ID --task_id 1 --seed 1 --space $1 --dataset $2 --search_dp $3 --search_wd $4 --search_task_id $SLURM_ARRAY_TASK_ID
 
