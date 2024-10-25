@@ -1,12 +1,12 @@
-#!/bin/bash
+#!/usr/bin/bash
 #
 # submit to the right queue
-#SBATCH -p batch_grad
+#SBATCH -p batch_ce_ugrad
 #SBATCH --gres gpu:1
 #SBATCH --cpus-per-gpu 8
-#SBATCH --mem-per-gpu 29G
+#SBATCH --mem-per-gpu=29G
 #SBATCH -a 1-1
-#SBATCH -t 2-0
+#SBATCH -t 1-0
 #SBATCH -J DARTS_grid
 #
 # the execution will use the current directory for execution (important for relative paths)

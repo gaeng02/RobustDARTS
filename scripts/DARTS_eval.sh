@@ -1,7 +1,7 @@
-#!/bin/bash
+#!/usr/bin/bash
 #
 # submit to the right queue
-#SBATCH -p batch_grad
+#SBATCH -p batch_ce_ugrad
 #SBATCH --gres gpu:1
 #SBATCH --cpus-per-gpu 8
 #SBATCH --mem-per-gpu 29G
@@ -15,6 +15,7 @@
 # redirect the output/error to some files
 #SBATCH -o ./experiments/cluster_logs/%A_%a.o
 #SBATCH -e ./experiments/cluster_logs/%A_%a.e
+#
 #
 
 /data/$USER/anaconda3/bin/conda init
