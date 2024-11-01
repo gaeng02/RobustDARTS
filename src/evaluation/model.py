@@ -26,6 +26,7 @@ class Cell(nn.Module):
     self._compile(C, op_names, indices, concat, reduction)
 
   def _compile(self, C, op_names, indices, concat, reduction):
+    # weight 값에 따라 선택적
     assert len(op_names) == len(indices)
     self._steps = len(op_names) // 2
     self._concat = concat

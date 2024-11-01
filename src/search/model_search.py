@@ -163,8 +163,9 @@ class Network(nn.Module):
         end = start + n
         W = weights[start:end].copy()
 
-        try:
+        try: # edges를 2개만 말고 여러 개 3, 4
           edges = sorted(range(i + 2), key=lambda x: -max(W[x][k] for k in range(len(W[x])) if k != PRIMITIVES[x].index('none')))[:2]
+          
         except ValueError: # This error happens when the 'none' op is not present in the ops
           edges = sorted(range(i + 2), key=lambda x: -max(W[x][k] for k in range(len(W[x]))))[:2]
 
@@ -178,7 +179,7 @@ class Network(nn.Module):
             else:
               if k_best is None or W[j][k] > W[j][k_best]:
                 k_best = k
-          gene.append((PRIMITIVES[start+j][k_best], j))
+          gene.append((PRIMITIVES[start+j][k_best], j)) # w append
         start = end
         n += 1
       return gene
