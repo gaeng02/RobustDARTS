@@ -21,5 +21,5 @@
 /data/$USER/anaconda3/bin/conda init
 source activate darts
 
-python src/evaluation/train.py --data /local_datasets/darts --archs_config_file ./experiments/search_logs_SparseDARTS_600/results_arch.yaml --save experiments/eval_logs_SparseDARTS_600 --cutout --auxiliary --job_id $SLURM_ARRAY_JOB_ID --task_id 1 --seed 1 --space $1 --dataset $2 --search_dp $3 --search_wd $4 --search_task_id $SLURM_ARRAY_TASK_ID
+python src/evaluation/train.py --data /local_datasets/darts --archs_config_file ./experiments/search_logs_baseline/results_arch.yaml --save experiments/eval_logs_baseline --cutout --auxiliary --job_id $SLURM_ARRAY_JOB_ID --task_id 1 --seed 1 --space $1 --dataset $2 --search_dp $3 --search_wd $4 --search_task_id $SLURM_ARRAY_TASK_ID
 
